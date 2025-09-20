@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 import os, sys
 from typing import Optional, Tuple, Any, Dict, List
 
@@ -14,10 +14,10 @@ from settings import (
 from sql_utils import jsonable, normalize_sql_user_friendly
 
 
-# Optional：自動找 instantclient（如需 Thick）
+
 def _maybe_init_oracle():
     try:
-        import oracledb  # noqa
+        import oracledb
     except Exception:
         return
     try:
@@ -51,7 +51,7 @@ def current_oracle_mode() -> str:
         return "unavailable"
 
 
-# ---------------- 兩組 DB 設定與共用執行 ----------------
+
 def _build_dsn(base: str, timeout: int = 20) -> str:
     if not base:
         return ""
@@ -61,13 +61,13 @@ def _build_dsn(base: str, timeout: int = 20) -> str:
 
 
 DBS = {
-    # primary 指向 TE（供「以 SN 查」）
+
     "primary": {
         "user": ORACLE_USER,
         "password": ORACLE_PASSWORD,
         "dsn": _build_dsn(ORACLE_DSN),
     },
-    # vnap 指向 CQYR（供「SQL 指令(SELECT)」）
+
     "vnap": {
         "user": getattr(settings, "ORACLE2_USER", ""),
         "password": getattr(settings, "ORACLE2_PASSWORD", ""),
@@ -101,7 +101,7 @@ def _exec_once(sql: str, binds: Dict[str, Any], alias: str):
             return alias, cols, rows
 
 
-# --------- 輔助：Top‑N 與掃描 ---------
+
 def _strip_trailing_semicolon(s: str) -> str:
     import re
 
@@ -119,7 +119,7 @@ def _inject_first_rows_hint(s: str, nrows: int) -> str:
     )
 
 
-# ---------------- 對外 API：分流至正確 DB ----------------
+
 def call_sql_by_sn(sn: str) -> Optional[Tuple[Any, Any, Any]]:
     """
     僅執行 ORACLE_SQL_SN（綁 :sn），固定用 TE（primary）
@@ -152,14 +152,14 @@ def call_sql_raw(
     user_params = dict(params or {})
     user_params.pop("max_rows", None)
 
-    # 先嘗試 Top‑N：即使沒有 ORDER BY 也嘗試 FETCH FIRST（可促成早停）
+
     try:
         sql_with_hint = _inject_first_rows_hint(_strip_trailing_semicolon(sql_norm), n)
         sql_fetch = f"{sql_with_hint} FETCH FIRST {n} ROWS ONLY"
         _, cols, rows = _exec_once(sql_fetch, user_params, alias="vnap")
     except Exception as e:
         s = str(e)
-        # 11g 等不支援 FETCH 的錯誤，回退到 ROWNUM 包裝
+
         if any(code in s for code in ("ORA-00933", "ORA-00923", "ORA-32034")):
             wrapped = f"SELECT * FROM ({sql_norm}) WHERE ROWNUM <= :max_rows"
             binds = {**user_params, "max_rows": n}

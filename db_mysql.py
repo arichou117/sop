@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 import re
 from typing import Any, Dict, List
 
@@ -22,13 +22,13 @@ def _import_driver():
     driver_name in {"mysql.connector", "pymysql"}
     """
     try:
-        import mysql.connector  # type: ignore
+        import mysql.connector
 
         return ("mysql.connector", mysql.connector)
     except Exception:
         pass
     try:
-        import pymysql  # type: ignore
+        import pymysql
 
         return ("pymysql", pymysql)
     except Exception as e:
@@ -40,7 +40,7 @@ def _import_driver():
 def get_conn():
     drv_name, mod = _import_driver()
     if drv_name == "mysql.connector":
-        # mysql-connector-python
+
         return mod.connect(
             host=MYSQL_HOST,
             port=MYSQL_PORT,
@@ -51,7 +51,7 @@ def get_conn():
             charset=MYSQL_CHARSET,
         )
     else:
-        # PyMySQL
+
         return mod.connect(
             host=MYSQL_HOST,
             port=MYSQL_PORT,
@@ -60,7 +60,7 @@ def get_conn():
             database=MYSQL_DB,
             connect_timeout=MYSQL_TIMEOUT,
             charset=MYSQL_CHARSET,
-            cursorclass=mod.cursors.DictCursor,  # return dict rows directly
+            cursorclass=mod.cursors.DictCursor,
         )
 
 
@@ -89,13 +89,13 @@ def call_sql_raw_mysql(
     binds: Dict[str, Any] = dict(params or {})
     binds.pop("max_rows", None)
 
-    # Normalize and add LIMIT if not present
+
     sql_no_sc = _strip_trailing_semicolon(sql_norm)
     if not re.search(r"(?is)\blimit\s+\d+\b", sql_no_sc):
         sql_no_sc = f"{sql_no_sc} LIMIT %(max_rows)s"
         binds["max_rows"] = n
 
-    # Convert :name binds to %(name)s pyformat
+
     sql_final = _oracle_binds_to_mysql_pyformat(sql_no_sc)
 
     drv_name, mod = _import_driver()
@@ -108,7 +108,7 @@ def call_sql_raw_mysql(
             cur = conn.cursor()
         try:
             cur.execute(sql_final, binds)
-            # dictionary=True for mysql-connector, DictCursor for PyMySQL
+
             if hasattr(cur, "column_names"):
                 columns = list(getattr(cur, "column_names"))
             elif cur.description:
@@ -118,7 +118,7 @@ def call_sql_raw_mysql(
                 if isinstance(r, dict):
                     rows.append({k: jsonable(v) for k, v in r.items()})
                 else:
-                    # tuple row; map to columns
+
                     rows.append({columns[i]: jsonable(r[i]) for i in range(len(columns))})
         finally:
             try:

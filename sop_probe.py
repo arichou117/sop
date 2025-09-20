@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 """
 入口：支援 CLI 與 GUI。新增 --out_csv 以在 SQL 模式匯出 CSV。
 """
@@ -49,7 +49,7 @@ def main():
     p.add_argument("--cli", action="store_true", help="命令列輸出（不啟動 GUI）")
     args = p.parse_args()
 
-    # 新增：CLI 模式下的 MySQL Raw 支援（獨立處理以避免影響原邏輯）
+
     if getattr(args, "cli", False) and args.mode == "mysql_raw":
         if not args.sql:
             print('請用 --sql "SELECT ..." 提供查詢指令')
@@ -66,7 +66,7 @@ def main():
         return
 
     if args.cli:
-        # SQL Raw（或只要有帶 --sql 就視為 Raw）
+
         if args.mode == "sql_raw" or args.sql:
             if not args.sql:
                 print('請用 --sql "SELECT ..." 提供查詢指令')
@@ -79,7 +79,7 @@ def main():
             print(json.dumps(res, ensure_ascii=False, indent=2))
             return
 
-        # API
+
         if args.mode == "api":
             if not args.sn:
                 print("請用 --sn 輸入序號")
@@ -90,7 +90,7 @@ def main():
             print(json.dumps(payload, ensure_ascii=False, indent=2))
             return
 
-        # SQL by SN
+
         if args.mode == "sql_sn":
             if not args.sn:
                 print("請用 --sn 輸入序號")
@@ -108,7 +108,7 @@ def main():
                 print("查無資料")
             return
 
-    # 預設：GUI（需要登入）
+
     if not require_login():
         return
     App().mainloop()

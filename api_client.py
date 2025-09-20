@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 import os, sys, requests
 from typing import List
 from settings import (
@@ -13,7 +13,7 @@ from settings import (
     resolve_verify_param,
 )
 
-# SNI/Host header（可選）
+
 try:
     from requests_toolbelt.adapters.host_header_ssl import HostHeaderSSLAdapter
 
@@ -21,7 +21,7 @@ try:
 except Exception:
     _HAS_HOSTHEADER_ADAPTER = False
 
-# 關閉 Insecure 警告（若 verify=False）
+
 try:
     import urllib3
 

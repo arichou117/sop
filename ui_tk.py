@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 import json, tkinter as tk
 from tkinter import ttk, messagebox, simpledialog, filedialog
 from datetime import datetime
@@ -13,9 +13,9 @@ from settings import (
     API_CA,
     SQL_MAX_ROWS,
     ORACLE_DSN,
-    ORACLE2_DSN,  # 顯示第二組 DB
-    DEFAULT_DB_ALIAS,  # 顯示預設別名
-    FALLBACK_DB_ALIAS,  # 顯示回退別名
+    ORACLE2_DSN,
+    DEFAULT_DB_ALIAS,
+    FALLBACK_DB_ALIAS,
     augment_easy_connect_with_timeout,
 )
 from db_oracle import call_sql_by_sn, call_sql_raw, current_oracle_mode
@@ -32,7 +32,7 @@ class App(tk.Tk):
         super().__init__()
         self.title("SOP 資訊檢視工具（SQL by SN / SQL Raw）")
         self.geometry("1100x860")
-        # 初始化暫存
+
         self._last_columns = []
         self._last_rows = []
         self._last_table_text = ""
@@ -42,7 +42,7 @@ class App(tk.Tk):
         frm = ttk.Frame(self, padding=12)
         frm.pack(fill="both", expand=True)
 
-        # SN
+
         row1 = ttk.Frame(frm)
         row1.pack(fill="x", pady=5)
         ttk.Label(row1, text="SN：").pack(side="left")
@@ -51,7 +51,7 @@ class App(tk.Tk):
         self.entry_sn.pack(side="left", fill="x", expand=True)
         self.entry_sn.focus()
 
-        # 模式 + 操作
+
         row2 = ttk.Frame(frm)
         row2.pack(fill="x", pady=5)
         self.mode = tk.StringVar(value="sql_sn")
@@ -91,7 +91,7 @@ class App(tk.Tk):
         )
         self.spin_max.pack(side="left")
 
-        # SQL 指令與參數
+
         row3 = ttk.Frame(frm)
         row3.pack(fill="both", pady=(8, 5))
         ttk.Label(
@@ -112,14 +112,14 @@ class App(tk.Tk):
         )
         self.entry_params.pack(fill="x", expand=True)
 
-        # 訊息/輸出區
+
         self.txt = tk.Text(frm, wrap="word", font=("Consolas", 12), height=10)
         self.txt.pack(fill="both", expand=False, pady=(8, 8))
         self.txt.tag_configure("summary", foreground="blue")
         self.txt.tag_configure("error", foreground="red")
         self.txt.tag_configure("hint", foreground="gray")
 
-        # 結果表格（Treeview）
+
         tbl_wrap = ttk.Frame(frm)
         tbl_wrap.pack(fill="both", expand=True, pady=(0, 8))
         self.tbl = ttk.Treeview(tbl_wrap, columns=(), show="headings")
@@ -136,7 +136,7 @@ class App(tk.Tk):
         self.tbl_scroll_y.pack(side="right", fill="y")
         self.tbl_scroll_x.pack(side="bottom", fill="x")
 
-        # Enter 快捷查詢
+
         self.bind("<Return>", lambda e: self.on_query())
         self._update_mode_ui()
 
@@ -176,14 +176,14 @@ class App(tk.Tk):
             self.tbl.delete(i)
 
     def _set_table(self, columns, rows, *, max_col_chars=60):
-        # 清空
+
         for i in self.tbl.get_children(""):
             self.tbl.delete(i)
         self.tbl["columns"] = columns or ()
-        # 暫存供匯出
+
         self._last_columns = list(columns or [])
         self._last_rows = list(rows or [])
-        # 設定欄位與估算寬度
+
         widths = []
         for c in columns or ():
             max_len = len(str(c))
@@ -193,15 +193,15 @@ class App(tk.Tk):
                     val = ""
                 max_len = max(max_len, len(str(val)))
             max_len = min(max_len, max_col_chars)
-            widths.append(max_len * 8)  # 粗估
+            widths.append(max_len * 8)
             self.tbl.heading(c, text=str(c))
             self.tbl.column(c, width=widths[-1], anchor="w", stretch=True)
-        # 填入資料
+
         for r in rows or []:
             vals = [r.get(c, "") for c in (columns or ())]
             self.tbl.insert("", "end", values=vals)
 
-        # 保留表格 TSV 文本供「複製結果」
+
         lines = []
         if columns:
             lines.append("\t".join(str(c) for c in columns))
@@ -212,7 +212,7 @@ class App(tk.Tk):
     def on_copy_table(self):
         text = getattr(self, "_last_table_text", "")
         if not text:
-            # 無表格則退回訊息區內容
+
             text = self.txt.get("1.0", "end").strip()
             if not text:
                 messagebox.showinfo("提示", "沒有可複製的內容")
@@ -260,7 +260,7 @@ class App(tk.Tk):
         params_text = getattr(self, "params_var", tk.StringVar(value="")).get()
         self.on_clear()
         self._insert_hint_header()
-        # MySQL Raw 模式（優先在此處理並返回）
+
         if m == "mysql_raw":
             if not sql_raw:
                 messagebox.showinfo("提示", "請輸入 SQL 指令（僅 SELECT）")
@@ -296,9 +296,9 @@ class App(tk.Tk):
                         "DATA1": data1,
                         "queried_at": datetime.now().isoformat(timespec="seconds"),
                     }
-                    # 表格顯示
+
                     self._set_table(["MODEL_NAME", "SHIPPING_SN", "DATA1"], [out])
-                    # 摘要
+
                     self.txt.insert(
                         "end",
                         "[ROWS] 1  [COLUMNS] MODEL_NAME, SHIPPING_SN, DATA1\n",
@@ -319,7 +319,7 @@ class App(tk.Tk):
                     f"[ROWS] {res['rowcount']}  [COLUMNS] {', '.join(res['columns'])}\n"
                 )
                 self.txt.insert("end", header, "summary")
-                # 表格顯示
+
                 self._set_table(res.get("columns", []), res.get("rows", []))
         except Exception as e:
             self.txt.insert("end", f"查詢失敗：{e}\n", "error")
@@ -350,6 +350,6 @@ def require_login(
 
 
 if __name__ == "__main__":
-    # 直接執行本檔會先登入再開 GUI
+
     if require_login():
         App().mainloop()

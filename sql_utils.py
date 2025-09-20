@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 import json, re
 from datetime import datetime, date
 from decimal import Decimal
@@ -19,13 +19,13 @@ def jsonable(v):
 
 def normalize_sql_user_friendly(sql_text: str) -> str:
     s = sql_text.strip()
-    s = re.sub(r";\s*\Z", "", s)  # 去尾分號
-    s = re.sub(r"(?is)^\s*selec\b", "SELECT", s)  # SELEC → SELECT
+    s = re.sub(r";\s*\Z", "", s)
+    s = re.sub(r"(?is)^\s*selec\b", "SELECT", s)
     s = re.sub(
         r"(?is)\bTO[\s_]*NUMBER\s*\(", "TO_NUMBER(", s
-    )  # TO_ NUMBER ( → TO_NUMBER(
-    s = re.sub(r"(?is)(\w)\s*_\s*(\w)", r"\1_\2", s)  # A _B → A_B
-    s = re.sub(r"[ \t]+", " ", s)  # 壓空白
+    )
+    s = re.sub(r"(?is)(\w)\s*_\s*(\w)", r"\1_\2", s)
+    s = re.sub(r"[ \t]+", " ", s)
     return s
 
 
