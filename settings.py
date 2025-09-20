@@ -1,4 +1,3 @@
-
 import os
 
 
@@ -52,15 +51,6 @@ def resolve_verify_param():
     if API_CA:
         return API_CA
     return True if API_VERIFY == "1" else False
-
-
-
-
-
-
-
-
-
 
 
 MYSQL_HOST = os.getenv("MYSQL_HOST", "127.0.0.1").strip()

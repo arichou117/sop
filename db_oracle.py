@@ -1,4 +1,3 @@
-
 import os, sys
 from typing import Optional, Tuple, Any, Dict, List
 
@@ -14,10 +13,9 @@ from settings import (
 from sql_utils import jsonable, normalize_sql_user_friendly
 
 
-
 def _maybe_init_oracle():
     try:
-        import oracledb
+        import oracledb  # noqa
     except Exception:
         return
     try:
@@ -51,7 +49,6 @@ def current_oracle_mode() -> str:
         return "unavailable"
 
 
-
 def _build_dsn(base: str, timeout: int = 20) -> str:
     if not base:
         return ""
@@ -61,13 +58,11 @@ def _build_dsn(base: str, timeout: int = 20) -> str:
 
 
 DBS = {
-
     "primary": {
         "user": ORACLE_USER,
         "password": ORACLE_PASSWORD,
         "dsn": _build_dsn(ORACLE_DSN),
     },
-
     "vnap": {
         "user": getattr(settings, "ORACLE2_USER", ""),
         "password": getattr(settings, "ORACLE2_PASSWORD", ""),
@@ -101,7 +96,6 @@ def _exec_once(sql: str, binds: Dict[str, Any], alias: str):
             return alias, cols, rows
 
 
-
 def _strip_trailing_semicolon(s: str) -> str:
     import re
 
@@ -117,7 +111,6 @@ def _inject_first_rows_hint(s: str, nrows: int) -> str:
         s,
         count=1,
     )
-
 
 
 def call_sql_by_sn(sn: str) -> Optional[Tuple[Any, Any, Any]]:
@@ -151,7 +144,6 @@ def call_sql_raw(
     n = int(max_rows)
     user_params = dict(params or {})
     user_params.pop("max_rows", None)
-
 
     try:
         sql_with_hint = _inject_first_rows_hint(_strip_trailing_semicolon(sql_norm), n)

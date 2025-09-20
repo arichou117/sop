@@ -1,4 +1,3 @@
-
 import os, sys, requests
 from typing import List
 from settings import (

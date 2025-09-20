@@ -1,7 +1,7 @@
-
 """
 入口：支援 CLI 與 GUI。新增 --out_csv 以在 SQL 模式匯出 CSV。
 """
+
 import json
 import argparse
 import csv, os
@@ -10,8 +10,10 @@ from sql_utils import parse_bind_params
 from settings import SQL_MAX_ROWS
 from api_client import call_api, summarize_api_payload
 from db_oracle import call_sql_by_sn, call_sql_raw
+
 try:
     from db_mysql import call_sql_raw_mysql
+
     _HAS_MYSQL = True
 except Exception:
     _HAS_MYSQL = False
@@ -49,13 +51,14 @@ def main():
     p.add_argument("--cli", action="store_true", help="命令列輸出（不啟動 GUI）")
     args = p.parse_args()
 
-
     if getattr(args, "cli", False) and args.mode == "mysql_raw":
         if not args.sql:
             print('請用 --sql "SELECT ..." 提供查詢指令')
             return
         if not _HAS_MYSQL:
-            print("未找到 MySQL 支援，請安裝 mysql-connector-python 或 PyMySQL 後再試。")
+            print(
+                "未找到 MySQL 支援，請安裝 mysql-connector-python 或 PyMySQL 後再試。"
+            )
             return
         binds = parse_bind_params(args.params)
         res = call_sql_raw_mysql(args.sql, max_rows=args.max_rows, params=binds)
@@ -79,7 +82,6 @@ def main():
             print(json.dumps(res, ensure_ascii=False, indent=2))
             return
 
-
         if args.mode == "api":
             if not args.sn:
                 print("請用 --sn 輸入序號")
@@ -89,7 +91,6 @@ def main():
             print("\n完整 JSON")
             print(json.dumps(payload, ensure_ascii=False, indent=2))
             return
-
 
         if args.mode == "sql_sn":
             if not args.sn:
@@ -107,7 +108,6 @@ def main():
             else:
                 print("查無資料")
             return
-
 
     if not require_login():
         return

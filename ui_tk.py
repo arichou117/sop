@@ -1,4 +1,3 @@
-
 import json, tkinter as tk
 from tkinter import ttk, messagebox, simpledialog, filedialog
 from datetime import datetime
@@ -19,18 +18,19 @@ from settings import (
     augment_easy_connect_with_timeout,
 )
 from db_oracle import call_sql_by_sn, call_sql_raw, current_oracle_mode
+
 try:
     from db_mysql import call_sql_raw_mysql
+
     _HAS_MYSQL = True
 except Exception:
     _HAS_MYSQL = False
-from sql_utils import parse_bind_params
 
 
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("SOP 資訊檢視工具（SQL by SN / SQL Raw）")
+        self.title("salvage system（SQL by SN / SQL Raw）")
         self.geometry("1100x860")
 
         self._last_columns = []
@@ -42,7 +42,6 @@ class App(tk.Tk):
         frm = ttk.Frame(self, padding=12)
         frm.pack(fill="both", expand=True)
 
-
         row1 = ttk.Frame(frm)
         row1.pack(fill="x", pady=5)
         ttk.Label(row1, text="SN：").pack(side="left")
@@ -50,7 +49,6 @@ class App(tk.Tk):
         self.entry_sn = ttk.Entry(row1, textvariable=self.sn_var, font=("Consolas", 14))
         self.entry_sn.pack(side="left", fill="x", expand=True)
         self.entry_sn.focus()
-
 
         row2 = ttk.Frame(frm)
         row2.pack(fill="x", pady=5)
@@ -91,34 +89,20 @@ class App(tk.Tk):
         )
         self.spin_max.pack(side="left")
 
-
         row3 = ttk.Frame(frm)
         row3.pack(fill="both", pady=(8, 5))
         ttk.Label(
             row3,
-            text="SQL 指令（限 SELECT；可含 ORDER BY；可用綁定參數）",
+            text="SQL 指令（限 SELECT；可含 ORDER BY）",
         ).pack(anchor="w")
         self.txt_sql = tk.Text(row3, height=6, wrap="word", font=("Consolas", 12))
         self.txt_sql.pack(fill="x", expand=False, pady=(0, 6))
-        row3b = ttk.Frame(frm)
-        row3b.pack(fill="x", pady=(0, 5))
-        ttk.Label(
-            row3b,
-            text="參數（JSON 或 k=v；以逗號/分號/換行分隔；例：d1=2025-08-01,d2=2025-09-01）",
-        ).pack(anchor="w")
-        self.params_var = tk.StringVar()
-        self.entry_params = ttk.Entry(
-            row3b, textvariable=self.params_var, font=("Consolas", 12)
-        )
-        self.entry_params.pack(fill="x", expand=True)
-
 
         self.txt = tk.Text(frm, wrap="word", font=("Consolas", 12), height=10)
         self.txt.pack(fill="both", expand=False, pady=(8, 8))
         self.txt.tag_configure("summary", foreground="blue")
         self.txt.tag_configure("error", foreground="red")
         self.txt.tag_configure("hint", foreground="gray")
-
 
         tbl_wrap = ttk.Frame(frm)
         tbl_wrap.pack(fill="both", expand=True, pady=(0, 8))
@@ -135,7 +119,6 @@ class App(tk.Tk):
         self.tbl.pack(side="left", fill="both", expand=True)
         self.tbl_scroll_y.pack(side="right", fill="y")
         self.tbl_scroll_x.pack(side="bottom", fill="x")
-
 
         self.bind("<Return>", lambda e: self.on_query())
         self._update_mode_ui()
@@ -167,8 +150,9 @@ class App(tk.Tk):
     def _update_mode_ui(self):
         m = self.mode.get()
         self.entry_sn.configure(state=("normal" if m == "sql_sn" else "disabled"))
-        self.txt_sql.configure(state=("normal" if m in ("sql_raw", "mysql_raw") else "disabled"))
-        self.entry_params.configure(state=("normal" if m in ("sql_raw", "mysql_raw") else "disabled"))
+        self.txt_sql.configure(
+            state=("normal" if m in ("sql_raw", "mysql_raw") else "disabled")
+        )
 
     def _clear_table(self):
         self.tbl["columns"] = ()
@@ -200,7 +184,6 @@ class App(tk.Tk):
         for r in rows or []:
             vals = [r.get(c, "") for c in (columns or ())]
             self.tbl.insert("", "end", values=vals)
-
 
         lines = []
         if columns:
@@ -257,7 +240,6 @@ class App(tk.Tk):
         m = self.mode.get()
         sn = self.sn_var.get().strip().strip("{}")
         sql_raw = self.txt_sql.get("1.0", "end").strip()
-        params_text = getattr(self, "params_var", tk.StringVar(value="")).get()
         self.on_clear()
         self._insert_hint_header()
 
@@ -271,9 +253,8 @@ class App(tk.Tk):
                     "未找到 MySQL 支援，請安裝 mysql-connector-python 或 PyMySQL。",
                 )
                 return
-            binds = parse_bind_params(params_text)
-            self.txt.insert("end", f"查詢中（MySQL） 綁定數: {binds}\n\n")
-            res = call_sql_raw_mysql(sql_raw, max_rows=self.max_rows_var.get(), params=binds)
+            self.txt.insert("end", "查詢中（MySQL）\n\n")
+            res = call_sql_raw_mysql(sql_raw, max_rows=self.max_rows_var.get())
             header = (
                 f"[ROWS] {res['rowcount']}  [COLUMNS] {', '.join(res['columns'])}\n"
             )
@@ -310,11 +291,8 @@ class App(tk.Tk):
                 if not sql_raw:
                     messagebox.showinfo("提示", "請輸入 SQL 指令（限 SELECT）")
                     return
-                binds = parse_bind_params(params_text)
-                self.txt.insert("end", f"查詢中（SQL 指令）… 參數: {binds}\n\n")
-                res = call_sql_raw(
-                    sql_raw, max_rows=self.max_rows_var.get(), params=binds
-                )
+                self.txt.insert("end", "查詢中（SQL 指令）\n\n")
+                res = call_sql_raw(sql_raw, max_rows=self.max_rows_var.get())
                 header = (
                     f"[ROWS] {res['rowcount']}  [COLUMNS] {', '.join(res['columns'])}\n"
                 )

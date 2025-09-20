@@ -1,4 +1,3 @@
-
 import re
 from typing import Any, Dict, List
 
@@ -89,12 +88,10 @@ def call_sql_raw_mysql(
     binds: Dict[str, Any] = dict(params or {})
     binds.pop("max_rows", None)
 
-
     sql_no_sc = _strip_trailing_semicolon(sql_norm)
     if not re.search(r"(?is)\blimit\s+\d+\b", sql_no_sc):
         sql_no_sc = f"{sql_no_sc} LIMIT %(max_rows)s"
         binds["max_rows"] = n
-
 
     sql_final = _oracle_binds_to_mysql_pyformat(sql_no_sc)
 
@@ -119,7 +116,9 @@ def call_sql_raw_mysql(
                     rows.append({k: jsonable(v) for k, v in r.items()})
                 else:
 
-                    rows.append({columns[i]: jsonable(r[i]) for i in range(len(columns))})
+                    rows.append(
+                        {columns[i]: jsonable(r[i]) for i in range(len(columns))}
+                    )
         finally:
             try:
                 cur.close()
@@ -127,4 +126,3 @@ def call_sql_raw_mysql(
                 pass
 
     return {"columns": columns, "rows": rows, "rowcount": len(rows), "binds": binds}
-
