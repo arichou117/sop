@@ -16,10 +16,7 @@ from sql_utils import jsonable, normalize_sql_user_friendly
 
 
 def _import_driver():
-    """Try mysql-connector-python first, then PyMySQL.
-    Returns a tuple (driver_name, module).
-    driver_name in {"mysql.connector", "pymysql"}
-    """
+
     try:
         import mysql.connector
 
@@ -68,9 +65,7 @@ def _strip_trailing_semicolon(s: str) -> str:
 
 
 def _oracle_binds_to_mysql_pyformat(sql: str) -> str:
-    """Convert :name to %(name)s for MySQL drivers using pyformat.
-    Avoid :: casts by negative lookbehind.
-    """
+
     return re.sub(r"(?<!:):([A-Za-z_][\w]*)", r"%(\1)s", sql)
 
 

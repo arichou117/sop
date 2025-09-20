@@ -114,9 +114,7 @@ def _inject_first_rows_hint(s: str, nrows: int) -> str:
 
 
 def call_sql_by_sn(sn: str) -> Optional[Tuple[Any, Any, Any]]:
-    """
-    僅執行 ORACLE_SQL_SN（綁 :sn），固定用 TE（primary）
-    """
+
     _, _, rows = _exec_once(ORACLE_SQL_SN, {"sn": sn}, alias="primary")
     return rows[0] if rows else None
 
@@ -126,12 +124,7 @@ def call_sql_raw(
     max_rows: int = SQL_MAX_ROWS,
     params: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
-    """
-    僅允許 SELECT；
-    一律優先用 Top‑N（FETCH FIRST N ROWS ONLY + FIRST_ROWS 提示），
-    若不支援（如 11g）或失敗，再回退到外包 ROWNUM 寫法。
-    固定走 VNAP 連線。
-    """
+
     if not sql_text.strip():
         raise RuntimeError("請輸入 SQL 指令")
 

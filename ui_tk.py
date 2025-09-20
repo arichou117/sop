@@ -306,7 +306,7 @@ class App(tk.Tk):
 def require_login(
     username_expected: str = "vvn", password_expected: str = "vvn"
 ) -> bool:
-    """顯示簡單登入視窗；帳號與密碼為固定值。回傳 True 代表通過；False 代表取消或錯誤。"""
+
     root = tk.Tk()
     root.withdraw()
     try:

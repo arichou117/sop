@@ -1,7 +1,3 @@
-"""
-入口：支援 CLI 與 GUI。新增 --out_csv 以在 SQL 模式匯出 CSV。
-"""
-
 import json
 import argparse
 import csv, os
@@ -21,11 +17,7 @@ from ui_tk import App, require_login
 
 
 def _write_csv(columns, rows, path):
-    """
-    將 SQL 結果寫出為 CSV
-    - columns: List[str]
-    - rows: List[Dict[str,Any]]
-    """
+
     os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
     with open(path, "w", newline="", encoding="utf-8-sig") as f:
         w = csv.writer(f)
